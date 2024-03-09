@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter_audio_recorder2/flutter_audio_recorder2.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_sound/flutter_sound.dart';
+import 'package:flutter_audio_recorder2/flutter_audio_recorder2.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path/path.dart' as path;
 
@@ -15,69 +16,69 @@ class SpectrogramPage extends StatefulWidget {
 class _SpectrogramPageState extends State<SpectrogramPage> {
   late String correctString = ''; // Marked as late and non-nullable
 
-  FlutterSoundRecorder? _recorder;
-  FlutterSoundPlayer? _player;
+  var recorder = FlutterAudioRecorder2('', audioFormat: AudioFormat.WAV);
   String _responseData = ""; // Store response data
   bool _isCorrect = false; // Flag to indicate if response matches
   bool _isRecording = false;
   bool _isPlaying = false;
   String _fileName = 'test_audio.mp4';
 
+  Future<void> startRecording() async {
+    print('Recoreder was started======');
+    await recorder.start();
+  }
+
+  Future<String?> stopRecording() async {
+    var result = await recorder.stop();
+    log.log(result!.path!);
+    print('Recording was stoped & path is======== ${result.path}');
+    uploadAudio(result.path!);
+  }
+
   Future<void> _startRecording() async {
-    try {
-      if (_recorder != null) {
-        await _recorder!.openRecorder();
-        await _recorder!.startRecorder(
-          toFile: _fileName,
-        );
+    print('Recorder was started======');
+    recorder.start();
 
-        // Start a timer to stop recording after 1 second
-        Timer(Duration(seconds: 1), () async {
-          if (_isRecording) {
-            await _stopRecording();
-          }
-        });
-
-        setState(() {
-          _isRecording = true;
-        });
-      } else {
-        print('Recorder is not initialized');
+    // Start a timer to stop recording after 1 second
+    Timer(Duration(seconds: 1), () async {
+      if (_isRecording) {
+        await stopRecording();
       }
-    } catch (e) {
-      print('Error while recording: $e');
-      // Show user an error message here (e.g., snackbar)
-    }
+    });
+
+    setState(() {
+      _isRecording = true;
+    });
   }
 
-  Future<void> _stopRecording() async {
-    try {
-      await _recorder!.stopRecorder();
-      setState(() {
-        _isRecording = false;
-        // Call uploadAudio() immediately after stopping
-      });
-    } catch (e) {
-      print('Error while stopping recording: $e');
-      // Show user an error message here (e.g., snackbar)
-    }
-  }
+  // Future<void> _stopRecording() async {
+  //   try {
+  //     await _recorder!.stopRecorder();
+  //     setState(() {
+  //       _isRecording = false;
+  //       uploadAudio();
+  //     });
+  //   } catch (e) {
+  //     print('Error while stopping recording: $e');
+  //     // Show user an error message here (e.g., snackbar)
+  //   }
+  // }
 
   Future<String> getFilePath() async {
     final directory = await getApplicationDocumentsDirectory();
+    // final root = directory+'/'+_fileName;
     return directory.path; // Get the path
   }
 
   Future<void> uploadAudio() async {
     try {
       String filePath = await getFilePath();
-      // String fullPath =
-      //     path.join(filePath, _fileName); // Use path package for joining
-      print(filePath);
+      // String fullPath = path.join(filePath); // Use path package for joining
+      // print(filePath);
 
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.1.8:8080/classify'),
+        Uri.parse('http://192.168.106.253:8080/classify'),
       );
       request.files.add(await http.MultipartFile.fromPath('file', filePath,
           filename: _fileName));
@@ -108,57 +109,57 @@ class _SpectrogramPageState extends State<SpectrogramPage> {
     }
   }
 
-  Future<void> _startPlayback() async {
-    try {
-      if (_player != null) {
-        await _player!.openPlayer();
-        await _player!.startPlayer(
-          fromURI: _fileName,
-          whenFinished: () {
-            setState(() {
-              _isPlaying = false;
-            });
-          },
-        );
-        setState(() {
-          _isPlaying = true;
-        });
-      } else {
-        print('Player is not initialized');
-      }
-    } catch (e) {
-      print('Error while playing audio: $e');
-      // Show user an error message here (e.g., snackbar)
-    }
-  }
+  // Future<void> _startPlayback() async {
+  //   try {
+  //     if (_player != null) {
+  //       await _player!.openPlayer();
+  //       await _player!.startPlayer(
+  //         fromURI: _fileName,
+  //         whenFinished: () {
+  //           setState(() {
+  //             _isPlaying = false;
+  //           });
+  //         },
+  //       );
+  //       setState(() {
+  //         _isPlaying = true;
+  //       });
+  //     } else {
+  //       print('Player is not initialized');
+  //     }
+  //   } catch (e) {
+  //     print('Error while playing audio: $e');
+  //     // Show user an error message here (e.g., snackbar)
+  //   }
+  // }
 
-  Future<void> _stopPlayback() async {
-    try {
-      await _player!.stopPlayer();
-      setState(() {
-        _isPlaying = false;
-      });
-    } catch (e) {
-      print('Error while stopping audio playback: $e');
-      // Show user an error message here (e.g., snackbar)
-    }
-  }
+  // Future<void> _stopPlayback() async {
+  //   try {
+  //     await _player!.stopPlayer();
+  //     setState(() {
+  //       _isPlaying = false;
+  //     });
+  //   } catch (e) {
+  //     print('Error while stopping audio playback: $e');
+  //     // Show user an error message here (e.g., snackbar)
+  //   }
+  // }
 
-  @override
-  void initState() {
-    super.initState();
-    _recorder = FlutterSoundRecorder();
-    _player = FlutterSoundPlayer();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _recorder = FlutterSoundRecorder();
+  //   _player = FlutterSoundPlayer();
+  // }
 
-  @override
-  void dispose() {
-    // Release resources when widget is disposed
-    _recorder?.stopRecorder(); // Stop recording if ongoing
-    _recorder?.pauseRecorder(); // Pause recording if ongoing (optional)
-    _player?.stopPlayer(); // Stop playback if ongoing
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   // Release resources when widget is disposed
+  //   _recorder?.stopRecorder(); // Stop recording if ongoing
+  //   _recorder?.pauseRecorder(); // Pause recording if ongoing (optional)
+  //   _player?.stopPlayer(); // Stop playback if ongoing
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -205,13 +206,8 @@ class _SpectrogramPageState extends State<SpectrogramPage> {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _isRecording ? _stopRecording : _startRecording,
+              onPressed: _isRecording ? stopRecording : _startRecording,
               child: Text(_isRecording ? 'Stop Recording' : 'Start Recording'),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _isPlaying ? _stopPlayback : _startPlayback,
-              child: Text(_isPlaying ? 'Stop Playback' : 'Play Recording'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
