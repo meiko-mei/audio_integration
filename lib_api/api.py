@@ -3,6 +3,8 @@ from flask import Flask, request, jsonify
 from flask_restful import Api, Resource
 from keras.models import load_model
 import os
+import librosa
+import matplotlib.pyplot as plt
 import json
 from pydub import AudioSegment
 
@@ -23,75 +25,70 @@ class AudioClassifier(Resource):
         audio_file = request.files['file']
 
         # Save the uploaded file to a temporary location
-        temp_file_path = ''
+        temp_file_path = 'temp_audio.wav'
         audio_file.save(temp_file_path)
 
-        # Convert audio to WAV format
-        output_file = ''
-        convert_to_wav(temp_file_path, output_file)
+        x =('temp_audio.wav')
 
-        # Load the WAV file
-        audio = AudioSegment.from_file(output_file)
+        output_file = 'aa'
+        x = convert_to_wav(x)
+        
+        x = tf.io.read_file(str(x))
+        x = tf.audio.decode_wav(x, desired_channels=1, desired_samples=16000,)
+        x = tf.squeeze(x, axis=-1)
+        # waveform = x
+        x = get_spectrogram(x)
+        x = x[tf.newaxis,...]
 
-        # Convert audio to TensorFlow tensor
-        output_file = tf.constant(audio.get_array_of_samples())
-
-        # Preprocess audio for prediction
-        output_file = get_spectrogram(output_file)
-        output_file = output_file[tf.newaxis, ...]
-
-        # Predict using the loaded model
-        predictions = loaded_model.predict(output_file)
+        predictions = loaded_model.predict(x)
         x_labels = ['isang', 'maliit', 'maya', 'mayang', 'si', 'uhaw']
 
+        os.remove(temp_file_path)
+        
         # Get the index of the most probable predicted class
         predicted_class_index = tf.argmax(predictions[0]).numpy()
 
         # Get the corresponding label from x_labels
         predicted_word = x_labels[predicted_class_index]
 
-        # Remove the temporary audio file
-        os.remove(temp_file_path)
-        os.remove(output_file)
+        print(predictions)
 
-        return jsonify({'predicted_word': predicted_word})
+        json_string = json.dumps(predicted_word)
+        return json_string
 
 def get_spectrogram(x):
     # Convert the waveform to a spectrogram via a STFT.
     spectrogram = tf.signal.stft(x, frame_length=255, frame_step=128)
-    # Obtain the magnitude of the STFT.
+        # Obtain the magnitude of the STFT.
     spectrogram = tf.abs(spectrogram)
-    # Add a `channels` dimension, so that the spectrogram can be used
-    # as image-like input data with convolution layers (which expect
-    # shape (`batch_size`, `height`, `width`, `channels`).
+        # Add a `channels` dimension, so that the spectrogram can be used
+        # as image-like input data with convolution layers (which expect
+        # shape (`batch_size`, `height`, `width`, `channels`).
     spectrogram = spectrogram[..., tf.newaxis]
     return spectrogram
 
-
-def convert_to_wav(input_file, output_file):
+def convert_to_wav(x):
     # Load the audio file
-    audio = AudioSegment.from_file(input_file)
+    audio = AudioSegment.from_file(x)
     
     # Set parameters for conversion
     sample_rate = 16000
     bit_depth = 16
     channels = 1  # Mono
-    
-    # Set the sample width in bytes
-    sample_width = bit_depth // 8
-    
-    # Set the target sample rate and number of channels
-    audio = audio.set_frame_rate(sample_rate).set_channels(channels)
-    
-    # Set the target sample width
-    audio = audio.set_sample_width(sample_width)
-    
-    # Export the audio in WAV format
-    audio.export(output_file, format="wav")
 
-# Add the resource to the API
+    audio = audio.set_frame_rate(sample_rate).set_channels(channels)
+
+    # Generate a unique filename (optional)
+    output_filename = f"converted_{x.split('/')[-1]}"  # Example
+
+    # Export the audio in WAV format
+    audio.export(output_filename, format="wav")
+
+    return output_filename  # Return the generated filename
+    
+
 api.add_resource(AudioClassifier, '/classify')
 
-# Run the Flask application
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
+  

@@ -9,7 +9,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'functions.dart';
+import 'functions1.dart';
 
 // class SpectrogramPage extends StatefulWidget {
 //   @override
