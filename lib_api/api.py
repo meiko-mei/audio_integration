@@ -1,3 +1,5 @@
+
+  
 import tensorflow as tf
 from flask import Flask, request, jsonify
 from flask_restful import Api, Resource
@@ -30,11 +32,10 @@ class AudioClassifier(Resource):
 
         x =('temp_audio.wav')
 
-        output_file = 'aa'
         x = convert_to_wav(x)
         
         x = tf.io.read_file(str(x))
-        x = tf.audio.decode_wav(x, desired_channels=1, desired_samples=16000,)
+        x, sample_rate = tf.audio.decode_wav(x, desired_channels=1, desired_samples=16000,)
         x = tf.squeeze(x, axis=-1)
         # waveform = x
         x = get_spectrogram(x)
@@ -67,9 +68,11 @@ def get_spectrogram(x):
     spectrogram = spectrogram[..., tf.newaxis]
     return spectrogram
 
+
 def convert_to_wav(x):
-    # Load the audio file
+    # # Load the audio file
     audio = AudioSegment.from_file(x)
+   
     
     # Set parameters for conversion
     sample_rate = 16000
@@ -78,7 +81,7 @@ def convert_to_wav(x):
 
     audio = audio.set_frame_rate(sample_rate).set_channels(channels)
 
-    # Generate a unique filename (optional)
+    # Generate a unique filename
     output_filename = f"converted_{x.split('/')[-1]}"  # Example
 
     # Export the audio in WAV format
@@ -91,4 +94,3 @@ api.add_resource(AudioClassifier, '/classify')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
-  
