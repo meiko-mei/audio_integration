@@ -82,7 +82,7 @@ class _SpectrogramPageState extends State<SpectrogramPage> {
     // Create multipart request
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://192.168.1.12:8080/classify'),
+      Uri.parse('http://192.168.1.4:8080/classify'),
     );
     request.files.add(await http.MultipartFile.fromPath('file', filePath,
         filename: filename));
@@ -150,73 +150,73 @@ class _SpectrogramPageState extends State<SpectrogramPage> {
       return;
     }
 
-    //----------------FILE SELECTION----------------
-    // Save the audio file locally (optional)
-    try {
-      final Directory appDir = await getApplicationDocumentsDirectory();
-      final String localAudioFilePath = '${appDir.path}/audio_file.wav';
-      await _audioFile!.copy(localAudioFilePath);
-      print('Audio file saved locally: $localAudioFilePath');
-    } catch (e) {
-      print('Error saving audio file locally: $e');
-      // Handle local saving error (optional)
-    }
+    //   //----------------FILE SELECTION----------------
+    //   // Save the audio file locally (optional)
+    //   try {
+    //     final Directory appDir = await getApplicationDocumentsDirectory();
+    //     final String localAudioFilePath = '${appDir.path}/audio_file.wav';
+    //     await _audioFile!.copy(localAudioFilePath);
+    //     print('Audio file saved locally: $localAudioFilePath');
+    //   } catch (e) {
+    //     print('Error saving audio file locally: $e');
+    //     // Handle local saving error (optional)
+    //   }
 
-    // Prepare request details
-    final String filePath = _audioFile!.path;
-    final List<String> fileComponents = filePath.split('/');
-    final String filename = fileComponents.last;
+    //   // Prepare request details
+    //   final String filePath = _audioFile!.path;
+    //   final List<String> fileComponents = filePath.split('/');
+    //   final String filename = fileComponents.last;
 
-    // Create multipart request
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('http://192.168.1.8:8080/classify'),
-    );
-    request.files.add(await http.MultipartFile.fromPath('file', filePath,
-        filename: filename));
+    //   // Create multipart request
+    //   var request = http.MultipartRequest(
+    //     'POST',
+    //     Uri.parse('http://192.168.1.8:8080/classify'),
+    //   );
+    //   request.files.add(await http.MultipartFile.fromPath('file', filePath,
+    //       filename: filename));
 
-    // Send request
-    var response = await request.send();
+    //   // Send request
+    //   var response = await request.send();
 
-    // Check response status and handle accordingly
-    if (response.statusCode == 200) {
-      _responseData = await response.stream.bytesToString();
-      print('Server response: $_responseData');
+    //   // Check response status and handle accordingly
+    //   if (response.statusCode == 200) {
+    //     _responseData = await response.stream.bytesToString();
+    //     print('Server response: $_responseData');
 
-      // Remove double quotes and backslashes from response
-      _responseData = _responseData.replaceAll('"', '').replaceAll('\\', '');
+    //     // Remove double quotes and backslashes from response
+    //     _responseData = _responseData.replaceAll('"', '').replaceAll('\\', '');
 
-      // Check if trimmed response matches expected string
-      _isCorrect = _responseData.trim() == correctString.trim();
-    } else {
-      print('Failed to upload audio file. Error: ${response.reasonPhrase}');
-      _responseData = "Upload failed"; // Set error message
-      _isCorrect = false;
-    }
+    //     // Check if trimmed response matches expected string
+    //     _isCorrect = _responseData.trim() == correctString.trim();
+    //   } else {
+    //     print('Failed to upload audio file. Error: ${response.reasonPhrase}');
+    //     _responseData = "Upload failed"; // Set error message
+    //     _isCorrect = false;
+    //   }
 
-    setState(() {}); // Update UI with new response data and correctness flag
-  }
+    //   setState(() {}); // Update UI with new response data and correctness flag
+    // }
 
-  Future<void> _pickAudioFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.audio,
-      allowMultiple: false,
-    );
+    // Future<void> _pickAudioFile() async {
+    //   FilePickerResult? result = await FilePicker.platform.pickFiles(
+    //     type: FileType.audio,
+    //     allowMultiple: false,
+    //   );
 
-    if (result != null) {
-      setState(() {
-        _audioFile = File(result.files.single.path!);
-        _responseData = ""; // Clear response data on new file selection
-        _isCorrect = false; // Reset correctness flag
-      });
-    } else {
-      // Clear response data and reset correctness flag if user cancels file selection
-      setState(() {
-        _audioFile = null;
-        _responseData = "";
-        _isCorrect = false;
-      });
-    }
+    //   if (result != null) {
+    //     setState(() {
+    //       _audioFile = File(result.files.single.path!);
+    //       _responseData = ""; // Clear response data on new file selection
+    //       _isCorrect = false; // Reset correctness flag
+    //     });
+    //   } else {
+    //     // Clear response data and reset correctness flag if user cancels file selection
+    //     setState(() {
+    //       _audioFile = null;
+    //       _responseData = "";
+    //       _isCorrect = false;
+    //     });
+    //   }
 
     @override
     void initState() {
@@ -279,20 +279,20 @@ class _SpectrogramPageState extends State<SpectrogramPage> {
                 ],
               ),
             ),
-            SizedBox(height: 20),
-            _audioFile == null
-                ? Text('No audio file selected')
-                : Text('Selected audio file: ${_audioFile!.path}'),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _pickAudioFile,
-              child: Text('Select Audio File'),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _uploadFileSelect,
-              child: Text('Upload Audio File'),
-            ),
+            // SizedBox(height: 20),
+            // _audioFile == null
+            //     ? Text('No audio file selected')
+            //     : Text('Selected audio file: ${_audioFile!.path}'),
+            // SizedBox(height: 20),
+            // ElevatedButton(
+            //   onPressed: _pickAudioFile,
+            //   child: Text('Select Audio File'),
+            // ),
+            // SizedBox(height: 20),
+            // ElevatedButton(
+            //   onPressed: _uploadFileSelect,
+            //   child: Text('Upload Audio File'),
+            // ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
